@@ -228,12 +228,12 @@ Urutan section storefront. Semua kecuali header/footer bisa dimatikan lewat Feat
 | 3 | Hero | Headline gradien, CTA, kartu visual + banner, rating & jumlah ulasan | `storefront.hero` |
 | 4 | Ticker | Marquee promo berjalan | `storefront.ticker` |
 | 5 | Stats | 4 angka sosial dengan animasi hitung | `storefront.stats` |
-| 6 | Kenapa Kami | 4 keunggulan + strip brand | `storefront.keunggulan` |
+| 6 | Kenapa Kami | 6 keunggulan + strip brand | `storefront.keunggulan` |
 | 7 | Katalog | Pencarian, urutan, filter, tab kategori, kartu produk, muat lebih banyak | `storefront.katalog` |
 | 8 | PC Rakitan | Paket siap pakai dengan spesifikasi ringkas | `storefront.paket` |
 | 9 | Service | Alur 4 langkah + tombol daftar service | `storefront.layanan` |
 | 10 | Tukar Tambah | Kalkulator estimasi real‑time + ajukan | `storefront.tukar_tambah` |
-| 11 | Benefit | 6 jaminan layanan | — |
+| 11 | Benefit | 4 jaminan layanan bertumpuk | — |
 | 12 | Testimoni | Skor besar + kartu ulasan | `storefront.testimoni` |
 | 13 | FAQ | Accordion 8 pertanyaan | `storefront.faq` |
 | 14 | CTA Band | Ajakan besar dengan gradien | `storefront.cta` |

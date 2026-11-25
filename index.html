@@ -2729,7 +2729,7 @@ function renderCart() {
   if (!panel) return;
   var items = S.cart;
   var sub = cartSubtotal();
-  var freeMin = num(S.config && S.config.gratis_ongkir_min, 5000000);
+  var freeMin = num(S.settings && S.settings.gratis_ongkir_min, 5000000) || 5000000;
   var pct = clamp(Math.round(sub / freeMin * 100), 0, 100);
   var list = $('#cart-items');
   if (!list) return;
@@ -3002,9 +3002,19 @@ function tableHTML(cols, rows, opts) {
 }
 function pagerHTML(pg, id) {
   if (!pg || pg.pages <= 1) return '<div class="pager"><span>' + (pg ? pg.total : 0) + ' data</span></div>';
-  return '<div class="pager" data-pager="' + (id || '') + '"><span>Menampilkan ' + ((pg.page - 1) * pg.limit + 1) + '–' + Math.min(pg.page * pg.limit, pg.total) + ' dari ' + pg.total + '</span>' +
-    '<div class="btns"><button class="btn btn-ghost btn-xs" data-page="' + (pg.page - 1) + '" ' + (pg.page <= 1 ? 'disabled' : '') + '>' + I('chevron-left') + 'Sebelumnya</button>' +
-    '<button class="btn btn-ghost btn-xs" data-page="' + (pg.page + 1) + '" ' + (!pg.has_more ? 'disabled' : '') + '>Berikutnya' + I('chevron-right') + '</button></div></div>';
+  var from = (pg.page - 1) * pg.limit + 1, to = Math.min(pg.page * pg.limit, pg.total);
+  var nums = [];
+  for (var p = 1; p <= pg.pages; p++) {
+    if (p === 1 || p === pg.pages || Math.abs(p - pg.page) <= 1) nums.push(p);
+    else if (nums[nums.length - 1] !== '\u2026') nums.push('\u2026');
+  }
+  return '<div class="pager" data-pager="' + (id || '') + '"><span>Menampilkan ' + from + '\u2013' + to + ' dari ' + pg.total + '</span>' +
+    '<div class="btns"><button class="btn btn-ghost btn-xs btn-icon" data-page="' + (pg.page - 1) + '" ' + (pg.page <= 1 ? 'disabled' : '') + ' aria-label="Halaman sebelumnya">' + I('chevron-left') + '</button>' +
+    nums.map(function (n) {
+      if (n === '\u2026') return '<span class="tiny muted" style="padding:0 4px">\u2026</span>';
+      return '<button class="btn btn-xs ' + (n === pg.page ? 'btn-primary' : 'btn-ghost') + '" data-page="' + n + '" aria-current="' + (n === pg.page ? 'page' : 'false') + '">' + n + '</button>';
+    }).join('') +
+    '<button class="btn btn-ghost btn-xs btn-icon" data-page="' + (pg.page + 1) + '" ' + (!pg.has_more ? 'disabled' : '') + ' aria-label="Halaman berikutnya">' + I('chevron-right') + '</button></div></div>';
 }
 function kpiHTML(items) {
   return '<div class="kpi-grid">' + items.map(function (k, i) {
@@ -4157,7 +4167,7 @@ Object.assign(ACTIONS, {
     if (p) addToCart(p, 1, el);
   },
   fav: function (el, e) { if (e) e.stopPropagation(); toggleFav(el.dataset.sku, el); },
-  checkout: function () { openCheckout(); },
+  checkout: function () { closeDrawers(); setTimeout(openCheckout, 180); },
   'tradein-apply': function () {
     if (!$('#ti-nama')) openTradeinApply();
     else openTradeinApply();
@@ -4247,9 +4257,9 @@ function renderLogin(msg) {
     '<div style="max-width:420px"><h2 class="display-l" style="color:#fff">Kelola toko dari satu dashboard.</h2>' +
     '<p style="color:#a9bcd9;margin-top:12px;font-size:14px;line-height:1.7">Produk, pesanan, POS, service, tukar tambah, konten, hingga laporan penjualan — semua tersinkron dengan Google Sheets.</p>' +
     '<div class="row" style="gap:18px;margin-top:26px">' +
-    '<div><div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:#fff">97</div><div class="tiny" style="color:#8fa5c8">Action API</div></div>' +
+    '<div><div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:#fff">85</div><div class="tiny" style="color:#8fa5c8">Action API</div></div>' +
     '<div><div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:#fff">17</div><div class="tiny" style="color:#8fa5c8">Tabel data</div></div>' +
-    '<div><div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:#fff">43</div><div class="tiny" style="color:#8fa5c8">Modul modular</div></div>' +
+    '<div><div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:#fff">41</div><div class="tiny" style="color:#8fa5c8">Fitur modular</div></div>' +
     '</div></div>' +
     '<p class="tiny" style="color:#7f93b4">Mode ' + (CONFIG.API_URL ? 'Produksi · Google Sheets' : 'Demo · data di memori browser') + '</p>' +
     '</div><div class="login-panel"><div class="login-card">' +
@@ -4825,8 +4835,8 @@ PAGES.pesanan = async function (body) {
     ]) +
     '<div class="toolbar" style="margin-top:16px"><div class="input-group">' + I('search') +
     '<input class="input input-sm" id="ord-q" placeholder="Cari kode, nama, WhatsApp…" value="' + attr(PESANAN.q) + '"></div>' +
-    '<select class="select input-sm" id="ord-status" style="max-width:160px">' + ['SEMUA', 'MENUNGGU', 'LUNAS', 'VOID'].map(function (s) { return '<option ' + (PESANAN.status === s ? 'selected' : '') + '>' + s + '</option>'; }).join('') + '</select>' +
-    '<select class="select input-sm" id="ord-tipe" style="max-width:140px"><option value="SEMUA">Semua tipe</option><option ' + (PESANAN.tipe === 'ONLINE' ? 'selected' : '') + '>ONLINE</option><option ' + (PESANAN.tipe === 'POS' ? 'selected' : '') + '>POS</option></select>' +
+    '<select class="select input-sm" id="ord-status" aria-label="Filter status pesanan" style="max-width:160px">' + ['SEMUA', 'MENUNGGU', 'LUNAS', 'VOID'].map(function (s) { return '<option ' + (PESANAN.status === s ? 'selected' : '') + '>' + s + '</option>'; }).join('') + '</select>' +
+    '<select class="select input-sm" id="ord-tipe" aria-label="Filter tipe pesanan" style="max-width:140px"><option value="SEMUA">Semua tipe</option><option ' + (PESANAN.tipe === 'ONLINE' ? 'selected' : '') + '>ONLINE</option><option ' + (PESANAN.tipe === 'POS' ? 'selected' : '') + '>POS</option></select>' +
     '<span class="spacer"></span>' +
     (F('exports.csv') ? '<button class="btn btn-ghost btn-sm" data-act="ord-export">' + I('download') + 'Ekspor</button>' : '') +
     '</div>' +
@@ -4928,7 +4938,7 @@ PAGES.pelanggan = async function (body) {
     ]) +
     '<div class="toolbar" style="margin-top:16px"><div class="input-group">' + I('search') +
     '<input class="input input-sm" id="cust-q" placeholder="Cari nama, WhatsApp, kota…" value="' + attr(CUST.q) + '"></div>' +
-    '<select class="select input-sm" id="cust-tier" style="max-width:150px"><option value="">Semua tier</option>' +
+    '<select class="select input-sm" id="cust-tier" aria-label="Filter tier pelanggan" style="max-width:150px"><option value="">Semua tier</option>' +
     ['BRONZE', 'SILVER', 'GOLD', 'PLATINUM'].map(function (t) { return '<option ' + (CUST.tier === t ? 'selected' : '') + '>' + t + '</option>'; }).join('') + '</select>' +
     '<span class="spacer"></span>' +
     (['OWNER', 'ADMIN', 'KASIR', 'MARKETING'].indexOf(S.user.role) >= 0 ? '<button class="btn btn-primary btn-sm" data-act="cust-add">' + I('plus') + 'Pelanggan baru</button>' : '') +
@@ -5080,9 +5090,9 @@ PAGES.produk = async function (body) {
     ]) +
     '<div class="toolbar" style="margin-top:16px"><div class="input-group">' + I('search') +
     '<input class="input input-sm" id="prod-q" placeholder="Cari nama, SKU, brand…" value="' + attr(PROD.q) + '"></div>' +
-    '<select class="select input-sm" id="prod-cat" style="max-width:170px"><option value="Semua">Semua kategori</option>' +
+    '<select class="select input-sm" id="prod-cat" aria-label="Filter kategori produk" style="max-width:170px"><option value="Semua">Semua kategori</option>' +
     cats.map(function (c) { return '<option ' + (PROD.kategori === c ? 'selected' : '') + '>' + esc(c) + '</option>'; }).join('') + '</select>' +
-    '<select class="select input-sm" id="prod-status" style="max-width:140px"><option value="">Semua status</option><option ' + (PROD.status === 'AKTIF' ? 'selected' : '') + '>AKTIF</option><option ' + (PROD.status === 'ARSIP' ? 'selected' : '') + '>ARSIP</option></select>' +
+    '<select class="select input-sm" id="prod-status" aria-label="Filter status produk" style="max-width:140px"><option value="">Semua status</option><option ' + (PROD.status === 'AKTIF' ? 'selected' : '') + '>AKTIF</option><option ' + (PROD.status === 'ARSIP' ? 'selected' : '') + '>ARSIP</option></select>' +
     '<span class="spacer"></span>' +
     (F('exports.csv') ? '<button class="btn btn-ghost btn-sm" data-act="prod-export">' + I('download') + 'CSV</button>' : '') +
     '<button class="btn btn-primary btn-sm" data-act="prod-add">' + I('plus') + 'Produk baru</button></div>' +
@@ -5277,7 +5287,7 @@ PAGES.media = async function (body) {
   body.innerHTML =
     '<div class="panel" style="margin-bottom:16px"><div class="panel-body"><div class="toolbar" style="margin:0">' +
     '<div class="input-group">' + I('search') + '<input class="input input-sm" id="md-q" placeholder="Cari nama berkas…" value="' + attr(MEDIA.q) + '"></div>' +
-    '<select class="select input-sm" id="md-folder" style="max-width:170px">' + (folders.items || []).map(function (f) {
+    '<select class="select input-sm" id="md-folder" aria-label="Filter folder media" style="max-width:170px">' + (folders.items || []).map(function (f) {
       return '<option value="' + attr(f.nama) + '" ' + (MEDIA.folder === f.nama ? 'selected' : '') + '>' + esc(f.label) + '</option>';
     }).join('') + '</select>' +
     '<span class="spacer"></span>' +
@@ -5393,9 +5403,7 @@ PAGES.service = async function (body) {
   };
   var q = $('#svc-q');
   q.oninput = debounce(function () { SVC.q = q.value; renderPage('service'); }, 340);
-  box_drag_bind(d);
 };
-function box_drag_bind() { }
 function bindKanban() {
   var dragId = null;
   $$('.kcard').forEach(function (c) {
@@ -5478,7 +5486,7 @@ PAGES.tradein = async function (body) {
     ]) +
     '<div class="toolbar" style="margin-top:16px"><div class="input-group">' + I('search') +
     '<input class="input input-sm" id="ti-q" placeholder="Cari kode, nama, perangkat…" value="' + attr(TI.q) + '"></div>' +
-    '<select class="select input-sm" id="ti-status" style="max-width:170px">' + ['SEMUA', 'BARU', 'DISETUJUI', 'DITOLAK'].map(function (s) { return '<option ' + (TI.status === s ? 'selected' : '') + '>' + s + '</option>'; }).join('') + '</select></div>' +
+    '<select class="select input-sm" id="ti-status" aria-label="Filter status pengajuan" style="max-width:170px">' + ['SEMUA', 'BARU', 'DISETUJUI', 'DITOLAK'].map(function (s) { return '<option ' + (TI.status === s ? 'selected' : '') + '>' + s + '</option>'; }).join('') + '</select></div>' +
     '<div class="panel"><div class="panel-body flush">' +
     tableHTML([
       { label: 'Kode', get: function (t) { return '<span class="mono" style="font-weight:700">' + esc(t.id) + '</span><div class="sub">' + fmtDate(t.tanggal) + '</div>'; } },
@@ -6043,7 +6051,7 @@ PAGES.audit = async function (body) {
     ]) +
     '<div class="toolbar" style="margin-top:16px"><div class="input-group">' + I('search') +
     '<input class="input input-sm" id="au-q" placeholder="Cari aksi, pengguna, detail…" value="' + attr(window.AUDITP.q) + '"></div>' +
-    '<select class="select input-sm" id="au-aksi" style="max-width:220px"><option value="SEMUA">Semua aksi</option>' +
+    '<select class="select input-sm" id="au-aksi" aria-label="Filter jenis aksi audit" style="max-width:220px"><option value="SEMUA">Semua aksi</option>' +
     (d.aksi || []).map(function (a) { return '<option ' + (window.AUDITP.aksi === a ? 'selected' : '') + '>' + esc(a) + '</option>'; }).join('') + '</select>' +
     '<span class="spacer"></span><button class="btn btn-ghost btn-sm" data-act="au-export">' + I('download') + 'Ekspor</button></div>' +
     '<div class="panel"><div class="panel-body flush">' +
