@@ -947,6 +947,13 @@ html[data-theme="dark"] .skeleton::after{background:linear-gradient(90deg,transp
 .lay-pos{grid-template-columns:1.45fr .95fr;gap:16px;align-items:start}
 .pos-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .db-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+/* pagination bernomor */
+.pager .btns{align-items:center}
+.pager [aria-current="page"]{pointer-events:none}
+@media (max-width:560px){
+  .pager{flex-direction:column;align-items:flex-start;gap:8px}
+  .pager .btns{width:100%;overflow-x:auto;padding-bottom:2px}
+}
 @media (max-width:1180px){
   .lay-pos{grid-template-columns:1.2fr .9fr}
 }
@@ -3552,7 +3559,9 @@ function benefitsHTML() {
     [['Pemeriksaan 24 titik', 'Baterai, layar, keyboard, port, suhu, dan performa diuji dengan alat ukur.'],
     ['Masa uji coba 7 hari', 'Jika ada masalah fungsi yang tidak terdeteksi, kami tukar atau kembalikan dana.'],
     ['Garansi tertulis', 'Lembar garansi fisik dan digital mencatat nomor seri serta masa berlaku.'],
-    ['Pendampingan setup', 'Instalasi aplikasi kerja dan migrasi data gratis untuk pembelian unit baru.']].map(function (b) {
+    ['Pendampingan setup', 'Instalasi aplikasi kerja dan migrasi data gratis untuk pembelian unit baru.'],
+    ['Kemasan anti benturan', 'Setiap unit dikemas dengan foam ganda dan asuransi pengiriman penuh.'],
+    ['Purna jual 12 bulan', 'Tim teknisi in-house siap dihubungi lewat WhatsApp setelah pembelian.']].map(function (b) {
       return '<div class="check-item"><span class="tick">' + I('check') + '</span><div><div class="t">' + esc(b[0]) + '</div><div class="d">' + esc(b[1]) + '</div></div></div>';
     }).join('') + '</div>' +
     '<div class="row" style="gap:10px;margin-top:24px;flex-wrap:wrap">' +
